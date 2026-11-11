@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:robot-harness:trial-result:0.1.0",
+  "title": "TrialResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "trial_id",
+    "stage",
+    "started_at_utc",
+    "duration_ms",
+    "code_revision",
+    "hardware_profile_sha256",
+    "outcome",
+    "attempt_count",
+    "intervention_count",
+    "safety_stop_count",
+    "target_source",
+    "calibration_ids",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trial_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "enum": ["B0", "B1", "B2", "B3", "B4"]
+    },
+    "started_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "code_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "hardware_profile_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "outcome": {
+      "enum": ["success", "failure", "aborted"]
+    },
+    "attempt_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "intervention_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "safety_stop_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "target_source": {
+      "enum": [
+        "none",
+        "operator_base_frame",
+        "camera_single_shot",
+        "camera_closed_loop",
+        "agent"
+      ]
+    },
+    "calibration_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "failure": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["category", "code", "message"],
+          "properties": {
+            "category": {
+              "enum": [
+                "control",
+                "perception",
+                "calibration",
+                "execution",
+                "planning",
+                "safety",
+                "unknown"
+              ]
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "unit"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "sha256"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "failure"
+          }
+        },
+        "required": ["outcome"]
+      },
+      "then": {
+        "required": ["failure"]
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

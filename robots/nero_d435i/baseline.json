@@ -1,0 +1,104 @@
+{
+  "schema_version": "0.1.0",
+  "experiment_id": "nero-d435i-baseline-v0.1",
+  "status": "protocol-only",
+  "hardware": {
+    "arm": "AgileX NERO",
+    "camera": "Intel RealSense D435i",
+    "camera_mount": "fixed-eye-to-hand",
+    "end_effector": "record-before-execution",
+    "control_mode": "position"
+  },
+  "reference_environment": {
+    "os": "Ubuntu 22.04",
+    "ros": "Humble",
+    "hardware_validated": false
+  },
+  "stages": [
+    {
+      "id": "B0",
+      "name": "read-only-health",
+      "motion_allowed": false,
+      "required_evidence": [
+        "joint-feedback-consistency",
+        "urdf-and-frame-consistency",
+        "timestamp-and-freshness-report",
+        "camera-stream-and-metadata-report",
+        "version-manifest"
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "robot-repeatability-and-oracle-cartesian",
+      "motion_allowed": true,
+      "repeat_cycles": 30,
+      "target_source": "operator-specified-base-frame",
+      "required_evidence": [
+        "command-and-feedback-trajectories",
+        "settling-time",
+        "timeouts-and-abnormal-status",
+        "repeatability-with-measurement-method"
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "camera-and-hand-eye-identification",
+      "motion_allowed": true,
+      "calibration_pose_count": {
+        "minimum": 30,
+        "recommended_maximum": 40
+      },
+      "held_out_pose_count": 15,
+      "held_out_poses_used_for_fitting": false,
+      "required_evidence": [
+        "factory-camera-calibration-record",
+        "tcp-and-target-mount-provenance",
+        "held-out-validation-metrics",
+        "versioned-calibration-artifacts"
+      ]
+    },
+    {
+      "id": "B3",
+      "name": "perception-execution-ablation",
+      "motion_allowed": true,
+      "conditions": [
+        "operator-specified-base-frame-goals",
+        "camera-derived-single-shot",
+        "camera-derived-bounded-correction"
+      ],
+      "exploratory_trials_per_condition": 30,
+      "required_evidence": [
+        "single-attempt-and-final-success",
+        "physical-outcome-measurement-method",
+        "failure-taxonomy",
+        "all-trial-records"
+      ]
+    },
+    {
+      "id": "B4",
+      "name": "frozen-agent",
+      "motion_allowed": true,
+      "enabled_only_after": [
+        "B0",
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "frozen_for_comparison": [
+        "model",
+        "prompt",
+        "tool-schema",
+        "skill-revision",
+        "retry-budget"
+      ]
+    }
+  ],
+  "reporting": {
+    "success_confidence_interval": "Wilson 95%",
+    "include_failed_and_aborted_trials": true,
+    "report_single_attempt_and_final_success_separately": true,
+    "report_p50_and_p95_duration": true,
+    "report_interventions_and_safety_stops": true,
+    "independent_measurement_required_for_absolute_accuracy_claim": true
+  }
+}
